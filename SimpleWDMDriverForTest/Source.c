@@ -41,6 +41,7 @@ NTSTATUS DriverIRPHandler(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 NTSTATUS DispatchDevControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+	DbgBreakPoint();
 	PIO_STACK_LOCATION stack_location = IoGetCurrentIrpStackLocation(Irp);
 	NTSTATUS status = STATUS_SUCCESS;
 
@@ -81,7 +82,26 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
 
 	DriverObject->DriverUnload = Unload;
 
-	status = IoCreateDevice(DriverObject, 0, &DeviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
+	//status = IoCreateDevice(DriverObject, 0, &DeviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
+
+	// look here this is point where must create device for mounted disk
+	// it doesn't  work properly
+
+	typedef struct _DiskDevExt
+	{
+		int deviceId;
+	} DiskDevExt;
+
+	status = IoCreateDevice
+	(
+		DriverObject,
+		sizeof(DiskDevExt), // here may be simply 4 because DiskDevExt has only one int filed
+		&DeviceName,
+		FILE_DEVICE_DISK,
+		0,
+		FALSE,
+		&DeviceObject
+	);
 
 	if (!NT_SUCCESS(status))
 	{
